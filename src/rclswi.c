@@ -397,9 +397,7 @@ ros_init(term_t Context, term_t Args, term_t DomainId)
 
     rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
     TRY(rcl_init_options_init(&init_options, allocator));
-#ifdef HAVE_RCL_INIT_OPTIONS_SET_DOMAIN_ID
     TRY(rcl_init_options_set_domain_id(&init_options, (size_t)domain_id));
-#endif
     TRY(rcl_init(num_args, (const char**)arg_values, &init_options, context));
     int unparsed = rcl_arguments_get_count_unparsed_ros(&context->global_arguments);
     if ( unparsed > 0 )
@@ -2878,6 +2876,15 @@ rclswi_names_and_types_fini(rcl_names_and_types_t *names_and_types)
   return rc;
 }
 
+static int
+rclswi_topic_endpoint_info_array_fini(rcl_topic_endpoint_info_array_t *topic_endpoint_info)
+{ int rc = TRUE;
+
+  if ( topic_endpoint_info )
+    TRY(rcl_topic_endpoint_info_array_fini(topic_endpoint_info, &rclswi_default_allocator));
+
+  return rc;
+}
 
 /**
  * Unify an rcl `rcl_names_and_types_t` struct as a Prolog list of
@@ -4391,6 +4398,37 @@ out:
   return rc;
 }
 
+static foreign_t
+ros_publisher_qos_by_topic(term_t Node, term_t Topic, term_t QoSProfile)
+{ rclswi_node_t *node;
+  rmw_qos_profile_t *profile = NULL;
+  int rc = TRUE;
+  char *topic;
+
+  if ( !get_pointer(Node, (void**)&node, &node_type) )
+    return FALSE;
+
+  if ( !PL_is_variable(QoSProfile) )
+    return FALSE;
+
+  if ( !PL_get_chars(Topic, &topic, CVT_ATOM|CVT_STRING|CVT_EXCEPTION|REP_UTF8) )
+    return FALSE;
+
+  rcl_topic_endpoint_info_array_t publishers_info = rcl_get_zero_initialized_topic_endpoint_info_array();
+  TRY(rcl_get_publishers_info_by_topic(&node->node, &rclswi_default_allocator, topic, FALSE, &publishers_info));
+
+  if ( rc && publishers_info.size <= 0 )
+    OUTFAIL;
+
+  if ( (profile = malloc(sizeof(*profile))) ) {
+    /** We will select the first publisher for QoS */
+    *profile = publishers_info.info_array[0].qos_profile;
+    set_qos_profile(profile, QoSProfile);
+  }
+out:
+  rc = rclswi_topic_endpoint_info_array_fini(&publishers_info) && rc;
+  return rc;
+}
 
 static foreign_t
 ros_topic_names_and_types(term_t Node, term_t NamesAndTypes)
@@ -4777,6 +4815,7 @@ install_librclswi(void)
   PRED("ros_publisher_names_and_types", 5,
        ros_publisher_names_and_types, 0);
   PRED("ros_topic_names_and_types",   2, ros_topic_names_and_types,   0);
+  PRED("ros_publisher_qos_by_topic",  3, ros_publisher_qos_by_topic,  0);
   PRED("ros_client_names_and_types",  4, ros_client_names_and_types,  0);
   PRED("ros_service_names_and_types", 4, ros_service_names_and_types, 0);
   PRED("ros_action_client_names_and_types", 4,

@@ -46,6 +46,11 @@ get_qos_profile(term_t t, rmw_qos_profile_t **profile)
 { return get_pointer(t, (void**)profile, &qos_profile_type);
 }
 
+int
+set_qos_profile(rmw_qos_profile_t *profile, term_t t)
+{ return unify_pointer(t, profile, &qos_profile_type);
+}
+
 static enum_decl enum_history[] =
 { EN_DECL(RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT,     system_default),
   EN_DECL(RMW_QOS_POLICY_HISTORY_KEEP_LAST,          keep_last),

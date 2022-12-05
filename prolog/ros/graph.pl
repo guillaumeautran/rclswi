@@ -54,6 +54,15 @@ ros_current_topic(Topic, Type) :-
     ros:ros_topic_names_and_types(Node, TopicsAndTypes),
     member(Topic-[Type], TopicsAndTypes).
 
+%!  ros_current_topic(?Topic, ?QoSProfile) is nondet.
+%
+%   True when Topic with Type is visible on the ROS network.
+ros_topic_qos(Topic, QoSProfile) :-
+    ros_default_node(Node),
+    ros:ros_publisher_qos_by_topic(Node, Topic, QoSProfile).
+
+
+
 %!  ros_node_interface(?NodeName, ?Kind, ?ClientServer, ?Path, ?Type) is nondet.
 %
 %   True when the named node implements  the requested service or action

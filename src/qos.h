@@ -18,5 +18,5 @@
 
 extern void	install_ros_qos(void);
 extern int	get_qos_profile(term_t t, rmw_qos_profile_t **profile);
-
+extern int      set_qos_profile(rmw_qos_profile_t *profile, term_t t);
 #endif /*RCLSWI_QOS_H_INCLUDED*/

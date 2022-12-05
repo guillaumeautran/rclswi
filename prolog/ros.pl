@@ -197,6 +197,7 @@ ros_subscribe_sync(Node, Topic, CallBack, _Options) :-
 ros_subscribe_sync(Node, Topic, CallBack, Options) :-
     message_type(Topic, MsgType, Options),
     ros_msg_type_support(MsgType, TypeSupport),
+    ros_log(info, "GA: options QoS=~p", [Options]),
     qos_profile_from_options(QoSProfile, Options),
     '$ros_subscribe'(Node, TypeSupport, Topic, QoSProfile, Subscription),
     register_waitable(subscription(Topic), Node, Subscription, CallBack).

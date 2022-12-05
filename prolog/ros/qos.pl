@@ -74,7 +74,7 @@ check_qos_field(Key-_) :-
 
 check_qos_field_type(enum(Which), Value) =>
     ros:'$qos_enum_values'(Which, Domain),
-    must_be(one_of(Domain), Value).
+    must_be(oneof(Domain), Value).
 check_qos_field_type(duration, Value) =>
     must_be(number, Value),
     (   Value >= 0

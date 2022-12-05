@@ -22,9 +22,7 @@
 #include <rcutils/time.h>
 #include <rcl/logging.h>
 
-#ifdef HAVE_RCL_LOGGING_INTERFACE	/* not yet in foxy */
 #include <rcl_logging_interface/rcl_logging_interface.h>
-#endif
 
 #include "common.h"
 
@@ -183,7 +181,6 @@ ros_logging_rosout_enabled(void)
 }
 
 
-#ifdef HAVE_RCL_LOGGING_INTERFACE
 static foreign_t
 ros_log_directory(term_t dir)
 { int rc = TRUE;
@@ -192,11 +189,10 @@ ros_log_directory(term_t dir)
   TRY(rcl_logging_get_logging_directory(rclswi_default_allocator, &log_dir));
   rc = rc && PL_unify_chars(dir, PL_ATOM|REP_MB, (size_t)-1, log_dir);
   if ( log_dir )
-    rcl_free(log_dir);
+    rcl_free(log_dir, &rclswi_default_allocator);
 
   return rc;
 }
-#endif
 
 
 		 /*******************************
@@ -218,7 +214,5 @@ install_ros_logging(void)
   PL_register_foreign("$ros_get_logger_level",	     2,	ros_get_logger_level,	    0);
   PL_register_foreign("$ros_logging_rosout_enabled", 0,	ros_logging_rosout_enabled, 0);
   PL_register_foreign("$ros_log",		     6,	ros_log,		    0);
-#ifdef HAVE_RCL_LOGGING_INTERFACE
   PL_register_foreign("$ros_log_directory",	     1, ros_log_directory,          0);
-#endif
 }
